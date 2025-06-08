@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#121212" />
+    <meta name="description" content="Secure mobile biometric authentication using face recognition and PIN" />
+    <title>Secure Biometric Unlock</title>
+    <link rel="manifest" href="manifest.json" />
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --primary-dark: #3367d6;
+            --error-color: #ea4335;
+            --success-color: #34a853;
+            --warning-color: #fbbc05;
+            --bg-dark: #121212;
+            --bg-dark-secondary: #1e1e1e;
+            --bg-light: #f5f5f5;
+            --bg-light-secondary: #ffffff;
+            --text-dark: rgba(255, 255, 255, 0.92);
+            --text-dark-secondary: rgba(255, 255, 255, 0.7);
+            --text-light: #333;
+            --text-light-secondary: #555;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --transition-speed: 0.25s;
+            --header-height: 60px;
+            --footer-height: 80px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            --box-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            touch-action: manipulation;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body.light {
+            background: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        header {
+            padding: 15px 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-dark-secondary);
+            box-shadow: var(--box-shadow-sm);
+        }
+
+        body.light header {
+            background-color: var(--bg-light-secondary);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 10px 0 0;
+            color: var(--text-dark-secondary);
+            max-width: 90%;
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+
+        body.light p {
+            color: var(--text-light-secondary);
+        }
+
+        .main-content {
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: center;
+            position: relative;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+            aspect-ratio: 9/16;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background: #000;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light .video-container {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror effect for front camera */
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1); /* Match video mirroring */
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+
+        button {
+            margin: 0;
+            padding: 14px;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed);
+            font-weight: 500;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            -webkit-appearance: none;
+            box-shadow: var(--box-shadow-sm);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        button.secondary {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        body.light button.secondary {
+            color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        button.warning {
+            background-color: var(--warning-color);
+            color: var(--text-light);
+        }
+
+        #dark-mode-toggle {
+            padding: 8px;
+            min-width: auto;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #unlocked-screen,
+        #not-matched-message,
+        #pin-login-form,
+        #counters,
+        #loading-screen,
+        #camera-permission-denied {
+            display: none;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        #unlocked-screen h2 {
+            color: var(--success-color);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        #not-matched-message h2 {
+            color: var(--error-color);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        #camera-permission-denied h2 {
+            color: var(--warning-color);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        #pin-login-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 0;
+            width: 100%;
+            max-width: 400px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        #pin-input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        #pin-input {
+            padding: 15px;
+            font-size: 1.1rem;
+            width: 100%;
+            border-radius: var(--border-radius);
+            border: 2px solid #555;
+            outline: none;
+            text-align: center;
+            transition: border-color var(--transition-speed);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-dark);
+            box-shadow: var(--box-shadow-sm);
+        }
+
+        body.light #pin-input {
+            background: white;
+            color: var(--text-light);
+        }
+
+        #pin-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        #pin-visibility-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #777;
+            padding: 5px;
+            font-size: 1.1rem;
+        }
+
+        #pin-error {
+            color: var(--error-color);
+            font-weight: bold;
+            display: none;
+            margin-top: -10px;
+            font-size: 0.9rem;
+            animation: shake 0.5s;
+        }
+
+        #counters {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-dark-secondary);
+        }
+
+        body.light #counters {
+            color: var(--text-light-secondary);
+        }
+
+        .counter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .counter-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+        #success-count {
+            color: var(--success-color);
+        }
+
+        #fail-count {
+            color: var(--error-color);
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        body.light #loading-screen {
+            background: rgba(245, 245, 245, 0.95);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 15px;
+        }
+
+        body.light .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top-color: var(--primary-color);
+        }
+
+        .progress-bar {
+            width: 80%;
+            max-width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        body.light .progress-bar {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        footer {
+            width: 100%;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: var(--text-dark-secondary);
+            background-color: var(--bg-dark-secondary);
+        }
+
+        body.light footer {
+            color: var(--text-light-secondary);
+            background-color: var(--bg-light-secondary);
+        }
+
+        .face-feedback {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: var(--border-radius-sm);
+            background: rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            width: fit-content;
+            z-index: 10;
+            animation: fadeIn 0.3s;
+        }
+
+        .pin-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: background 0.2s;
+        }
+
+        body.light .pin-dot {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .pin-dot.filled {
+            background: var(--primary-color);
+        }
+
+        .camera-switch {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Performance optimizations for mobile */
+        @media (max-width: 480px) {
+            .video-container {
+                max-width: 320px;
+            }
+            
+            button {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            #pin-input {
+                padding: 12px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Disable text selection */
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Disable callout on tap hold */
+        a, button {
+            -webkit-touch-callout: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Secure Biometric Unlock</h1>
+        <button id="dark-mode-toggle" aria-label="Toggle dark mode">🌙</button>
+    </header>
+
+    <div class="main-content">
+        <div id="loading-screen">
+            <div class="spinner"></div>
+            <p>Loading security modules...</p>
+            <div class="progress-bar">
+                <div class="progress" id="model-load-progress"></div>
+            </div>
+        </div>
+
+        <p>Use face recognition or PIN for secure access</p>
+
+        <div class="video-container">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="canvas"></canvas>
+            <div id="face-feedback" class="face-feedback hidden"></div>
+            <button id="camera-switch" class="camera-switch hidden">🔄</button>
+        </div>
+
+        <div class="button-group">
+            <button id="start-btn">
+                <span class="icon">📷</span>
+                <span class="text">Start Face Unlock</span>
+            </button>
+            <button id="pin-login-btn" class="secondary">
+                <span class="icon">🔑</span>
+                <span class="text">Use PIN Instead</span>
+            </button>
+        </div>
+
+        <div id="unlocked-screen">
+            <h2>Authentication Successful!</h2>
+            <p>Welcome back! Redirecting...</p>
+        </div>
+        <div id="not-matched-message">
+            <h2>Authentication Failed</h2>
+            <p>Face not recognized. Please try again</p>
+            <button id="try-again-btn" class="warning">Try Again</button>
+        </div>
+        
+        <div id="camera-permission-denied">
+            <h2>Camera Access Required</h2>
+            <p>Please enable camera permissions in your browser settings to use face unlock.</p>
+            <button id="use-pin-fallback" class="secondary">Use PIN Instead</button>
+        </div>
+
+        <div id="pin-login-form">
+            <div class="pin-dots">
+                <div class="pin-dot" id="pin-dot-1"></div>
+                <div class="pin-dot" id="pin-dot-2"></div>
+                <div class="pin-dot" id="pin-dot-3"></div>
+                <div class="pin-dot" id="pin-dot-4"></div>
+                <div class="pin-dot" id="pin-dot-5"></div>
+                <div class="pin-dot" id="pin-dot-6"></div>
+            </div>
+            <div id="pin-input-container">
+                <input type="password" id="pin-input" placeholder="Enter 6-digit PIN" maxlength="6" inputmode="numeric" pattern="\d*" autocomplete="off" />
+                <button id="pin-visibility-toggle" aria-label="Show PIN">👁️</button>
+            </div>
+            <button id="pin-submit-btn">Unlock</button>
+            <div id="pin-error">Incorrect PIN. Please try again.</div>
+        </div>
+
+        <div id="counters">
+            <div class="counter">
+                <span>Successful</span>
+                <span id="success-count" class="counter-value">0</span>
+            </div>
+            <div class="counter">
+                <span>Failed</span>
+                <span id="fail-count" class="counter-value">0</span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Secure Biometric System v2.0 | <span id="connection-status">Online</span>
+    </footer>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        // DOM Elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startBtn = document.getElementById('start-btn');
+        const pinLoginBtn = document.getElementById('pin-login-btn');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const unlockedScreen = document.getElementById('unlocked-screen');
+        const notMatchedMessage = document.getElementById('not-matched-message');
+        const cameraPermissionDenied = document.getElementById('camera-permission-denied');
+        const pinLoginForm = document.getElementById('pin-login-form');
+        const pinInput = document.getElementById('pin-input');
+        const pinSubmitBtn = document.getElementById('pin-submit-btn');
+        const pinVisibilityToggle = document.getElementById('pin-visibility-toggle');
+        const pinError = document.getElementById('pin-error');
+        const countersDiv = document.getElementById('counters');
+        const successCountSpan = document.getElementById('success-count');
+        const failCountSpan = document.getElementById('fail-count');
+        const loadingScreen = document.getElementById('loading-screen');
+        const modelLoadProgress = document.getElementById('model-load-progress');
+        const faceFeedback = document.getElementById('face-feedback');
+        const cameraSwitch = document.getElementById('camera-switch');
+        const tryAgainBtn = document.getElementById('try-again-btn');
+        const usePinFallback = document.getElementById('use-pin-fallback');
+        const connectionStatus = document.getElementById('connection-status');
+        const pinDots = Array.from({ length: 6 }, (_, i) => document.getElementById(`pin-dot-${i+1}`));
+
+        // App State
+        let faceMatcher;
+        let detectionInterval;
+        let successCount = 0;
+        let failureCount = 0;
+        const correctPIN = "123456"; // In production, use secure storage
+        let isPINVisible = false;
+        let isProcessing = false;
+        let currentStream = null;
+        let facingMode = "user"; // front camera by default
+        let isOnline = true;
+
+        // Initialize the app
+        async function init() {
+            showLoading(true);
+            
+            // Check network status
+            checkNetworkStatus();
+            window.addEventListener('online', checkNetworkStatus);
+            window.addEventListener('offline', checkNetworkStatus);
+            
+            try {
+                await loadModels();
+                setupEventListeners();
+                resetUI();
+                showLoading(false);
+                
+                // Register service worker for PWA
+                if ('serviceWorker' in navigator) {
+                    try {
+                        await navigator.serviceWorker.register('sw.js');
+                        console.log('Service Worker registered');
+                    } catch (error) {
+                        console.log('Service Worker registration failed:', error);
+                    }
+                }
+                
+                // Check for device capabilities
+                checkDeviceCapabilities();
+            } catch (error) {
+                console.error("Initialization error:", error);
+                showLoading(false);
+                showError("Failed to initialize. Please check your connection and refresh.");
+            }
+        }
+
+        // Check device capabilities
+        function checkDeviceCapabilities() {
+            // Check for camera support
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="icon">❌</span><span class="text">Camera Not Supported</span>';
+            }
+            
+            // Check for WebGL support (required for face-api.js)
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (!gl) {
+                showError("WebGL is not supported in your browser. Face recognition will not work.");
+            }
+        }
+
+        // Check network status
+        function checkNetworkStatus() {
+            isOnline = navigator.onLine;
+            if (isOnline) {
+                connectionStatus.textContent = "Online";
+                connectionStatus.style.color = "var(--success-color)";
+            } else {
+                connectionStatus.textContent = "Offline";
+                connectionStatus.style.color = "var(--error-color)";
+                showError("You are offline. Some features may not work.");
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorEl = document.createElement('div');
+            errorEl.className = 'face-feedback';
+            errorEl.textContent = message;
+            errorEl.style.backgroundColor = 'var(--error-color)';
+            document.body.appendChild(errorEl);
+            
+            setTimeout(() => {
+                errorEl.style.opacity = '0';
+                setTimeout(() => errorEl.remove(), 300);
+            }, 3000);
+        }
+
+        // Show loading screen with progress
+        function showLoading(show) {
+            loadingScreen.style.display = show ? 'flex' : 'none';
+            document.body.style.overflow = show ? 'hidden' : '';
+        }
+
+        // Update counters UI
+        function updateCounters() {
+            successCountSpan.textContent = successCount;
+            failCountSpan.textContent = failureCount;
+            countersDiv.style.display = 'flex';
+        }
+
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('light');
+            const isLight = document.body.classList.contains('light');
+            localStorage.setItem('darkMode', isLight ? 'false' : 'true');
+            darkModeToggle.textContent = isLight ? '🌙' : '☀️';
+            
+            // Update theme color meta tag
+            const themeColor = document.querySelector('meta[name="theme-color"]');
+            themeColor.content = isLight ? "#f5f5f5" : "#121212";
+        }
+
+        // Load face detection models with mobile optimizations
+        async function loadModels() {
+            try {
+                // Use CPU backend for better mobile compatibility
+                await faceapi.tf.setBackend('cpu');
+                await faceapi.tf.ready();
+
+                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models/';
+                
+                // Load only essential models for mobile
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL, {
+                        onProgress: (progress) => {
+                            const percent = Math.round(progress * 100);
+                            modelLoadProgress.style.width = `${percent}%`;
+                        }
+                    }),
+                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL, {
+                        onProgress: (progress) => {
+                            const percent = Math.round(progress * 100);
+                            modelLoadProgress.style.width = `${percent}%`;
+                        }
+                    }),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL, {
+                        onProgress: (progress) => {
+                            const percent = Math.round(progress * 100);
+                            modelLoadProgress.style.width = `${percent}%`;
+                        }
+                    })
+                ]);
+            } catch (error) {
+                console.error("Model loading error:", error);
+                throw new Error("Failed to load face recognition models.");
+            }
+        }
+
+        // Create face matcher with reference images (optimized for mobile)
+        async function createFaceMatcher() {
+            const labeledDescriptors = [];
+            const faces = [
+                { label: 'User', image: 'anurag.png' },
+                // Add more reference images as needed
+            ];
+
+            for (const face of faces) {
+                try {
+                    const img = await faceapi.fetchImage(face.image);
+                    const detection = await faceapi
+                        .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({
+                            inputSize: 128, // Smaller size for mobile
+                            scoreThreshold: 0.4 // Slightly lower threshold
+                        }))
+                        .withFaceLandmarks(true) // Use tiny landmarks
+                        .withFaceDescriptor();
+
+                    if (!detection) {
+                        console.error(`No face detected in ${face.image}`);
+                        continue;
+                    }
+
+                    labeledDescriptors.push(
+                        new faceapi.LabeledFaceDescriptors(face.label, [detection.descriptor])
+                    );
+                } catch (error) {
+                    console.error(`Error processing ${face.image}`, error);
+                }
+            }
+
+            if (labeledDescriptors.length === 0) {
+                throw new Error("No valid reference faces found");
+            }
+
+            // Higher threshold for mobile to reduce false positives
+            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
+            return faceMatcher;
+        }
+
+        // Start camera stream with mobile-optimized settings
+        async function startVideo() {
+            try {
+                // Stop any existing stream
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+
+                const constraints = {
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: facingMode,
+                        frameRate: { ideal: 15 }
+                    }
+                };
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                currentStream = stream;
+                video.srcObject = stream;
+                
+                // Show camera switch button if device has multiple cameras
+                await checkCameraAvailability();
+                
+                return new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        // Small delay for mobile devices
+                        setTimeout(resolve, 300);
+                    };
+                });
+            } catch (err) {
+                console.error("Camera error:", err);
+                if (err.name === 'NotAllowedError') {
+                    showCameraPermissionDenied();
+                }
+                throw new Error("Camera permission denied or not available.");
+            }
+        }
+
+        // Check if device has multiple cameras
+        async function checkCameraAvailability() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                if (videoDevices.length > 1) {
+                    cameraSwitch.classList.remove('hidden');
+                } else {
+                    cameraSwitch.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error("Error enumerating devices:", error);
+                cameraSwitch.classList.add('hidden');
+            }
+        }
+
+        // Switch between front and back camera
+        async function switchCamera() {
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            try {
+                facingMode = facingMode === "user" ? "environment" : "user";
+                await startVideo();
+            } catch (error) {
+                console.error("Error switching camera:", error);
+                showError("Failed to switch camera");
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        // Show camera permission denied UI
+        function showCameraPermissionDenied() {
+            resetUI();
+            cameraPermissionDenied.style.display = 'block';
+            startBtn.style.display = 'none';
+            pinLoginBtn.style.display = 'none';
+        }
+
+        // Reset UI to initial state
+        function resetUI() {
+            unlockedScreen.style.display = 'none';
+            notMatchedMessage.style.display = 'none';
+            cameraPermissionDenied.style.display = 'none';
+            pinLoginForm.style.display = 'none';
+            pinError.style.display = 'none';
+            countersDiv.style.display = 'none';
+            video.style.display = 'block';
+            canvas.style.display = 'none';
+            faceFeedback.classList.add('hidden');
+            cameraSwitch.classList.add('hidden');
+            startBtn.style.display = 'flex';
+            pinLoginBtn.style.display = 'flex';
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<span class="icon">📷</span><span class="text">Start Face Unlock</span>';
+            pinInput.value = '';
+            updatePinDots();
+
+            // Stop any existing video streams
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+
+            // Clear any existing detection intervals
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+            }
+            
+            isProcessing = false;
+        }
+
+        // Update PIN dots visualization
+        function updatePinDots() {
+            const pinLength = pinInput.value.length;
+            pinDots.forEach((dot, index) => {
+                if (index < pinLength) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        // Setup all event listeners with mobile-friendly interactions
+        function setupEventListeners() {
+            // Dark mode toggle
+            darkModeToggle.addEventListener('click', toggleDarkMode);
+
+            // Check for saved dark mode preference
+            if (localStorage.getItem('darkMode') === 'false') {
+                toggleDarkMode();
+            }
+
+            // Face unlock start - use touch events for better mobile response
+            startBtn.addEventListener('touchstart', startFaceUnlock, { passive: true });
+            startBtn.addEventListener('click', startFaceUnlock);
+
+            // PIN login button
+            pinLoginBtn.addEventListener('touchstart', showPINForm, { passive: true });
+            pinLoginBtn.addEventListener('click', showPINForm);
+
+            // PIN submit handling
+            pinSubmitBtn.addEventListener('touchstart', handlePINSubmit, { passive: true });
+            pinSubmitBtn.addEventListener('click', handlePINSubmit);
+
+            // Allow PIN submit with Enter key
+            pinInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handlePINSubmit();
+                }
+            });
+
+            // PIN input changes
+            pinInput.addEventListener('input', (e) => {
+                updatePinDots();
+                pinError.style.display = 'none';
+                
+                // Auto-submit when 6 digits entered
+                if (e.target.value.length === 6) {
+                    handlePINSubmit();
+                }
+            });
+
+            // PIN visibility toggle
+            pinVisibilityToggle.addEventListener('touchstart', togglePINVisibility, { passive: true });
+            pinVisibilityToggle.addEventListener('click', togglePINVisibility);
+            
+            // Camera switch
+            cameraSwitch.addEventListener('click', switchCamera);
+            
+            // Try again button
+            tryAgainBtn.addEventListener('click', resetUI);
+            
+            // Use PIN fallback
+            usePinFallback.addEventListener('click', showPINForm);
+            
+            // Prevent zooming on double-tap
+            document.addEventListener('dblclick', (e) => e.preventDefault());
+        }
+
+        // Toggle PIN visibility
+        function togglePINVisibility() {
+            isPINVisible = !isPINVisible;
+            pinInput.type = isPINVisible ? 'text' : 'password';
+            pinVisibilityToggle.textContent = isPINVisible ? '👁️' : '👁️';
+            pinVisibilityToggle.setAttribute('aria-label', isPINVisible ? 'Hide PIN' : 'Show PIN');
+        }
+
+        // Start face unlock process with mobile optimizations
+        async function startFaceUnlock() {
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            try {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="icon">⏳</span><span class="text">Loading...</span>';
+
+                await createFaceMatcher();
+                await startVideo();
+
+                startBtn.style.display = 'none';
+                pinLoginBtn.style.display = 'none';
+                pinLoginForm.style.display = 'none';
+                notMatchedMessage.style.display = 'none';
+                unlockedScreen.style.display = 'none';
+                cameraPermissionDenied.style.display = 'none';
+                countersDiv.style.display = 'flex';
+                canvas.style.display = 'block';
+
+                setupFaceDetection();
+            } catch (error) {
+                console.error("Face unlock error:", error);
+                showError(error.message || "Failed to start face unlock");
+                resetUI();
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        // Setup face detection on video stream with mobile optimizations
+        function setupFaceDetection() {
+            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            // Slower interval for mobile to reduce CPU usage
+            detectionInterval = setInterval(async () => {
+                if (video.paused || video.ended || isProcessing) return;
+                isProcessing = true;
+
+                try {
+                    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
+                        inputSize: 128, // Smaller size for mobile
+                        scoreThreshold: 0.4 // Lower threshold
+                    }))
+                    .withFaceLandmarks(true) // Use tiny landmarks
+                    .withFaceDescriptors();
+
+                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Only draw detections if found to save CPU
+                    if (detections.length > 0) {
+                        faceapi.draw.drawDetections(canvas, resizedDetections);
+                        
+                        const results = detections.map(d => faceMatcher.findBestMatch(d.descriptor));
+                        let matched = false;
+
+                        for (const result of results) {
+                            if (result.label !== 'unknown' && result.distance < 0.5) {
+                                matched = true;
+                                showFaceFeedback("Recognized: " + result.label, "success");
+                                handleSuccessfulAuth(result.label);
+                                break;
+                            }
+                        }
+                        
+                        if (!matched) {
+                            showFaceFeedback("Face not recognized", "error");
+                            handleFailedAuth();
+                        }
+                    } else {
+                        notMatchedMessage.style.display = 'none';
+                        faceFeedback.classList.add('hidden');
+                    }
+                } catch (error) {
+                    console.error("Detection error:", error);
+                    showFaceFeedback("Detection error", "error");
+                } finally {
+                    isProcessing = false;
+                }
+            }, 1500); // Slower interval for mobile
+        }
+
+        // Show face detection feedback
+        function showFaceFeedback(message, type) {
+            faceFeedback.textContent = message;
+            faceFeedback.classList.remove('hidden');
+            
+            if (type === "success") {
+                faceFeedback.style.backgroundColor = "var(--success-color)";
+            } else {
+                faceFeedback.style.backgroundColor = "var(--error-color)";
+            }
+            
+            // Auto-hide after 2 seconds
+            setTimeout(() => {
+                faceFeedback.classList.add('hidden');
+            }, 2000);
+        }
+
+        // Handle successful authentication
+        function handleSuccessfulAuth(label) {
+            successCount++;
+            updateCounters();
+            clearInterval(detectionInterval);
+            detectionInterval = null;
+
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+
+            video.style.display = 'none';
+            canvas.style.display = 'none';
+            faceFeedback.classList.add('hidden');
+
+            unlockedScreen.style.display = 'block';
+            notMatchedMessage.style.display = 'none';
+
+            setTimeout(() => {
+                redirectToDashboard();
+            }, 1500);
+        }
+
+        // Handle failed authentication
+        function handleFailedAuth() {
+            failureCount++;
+            updateCounters();
+            notMatchedMessage.style.display = 'block';
+            unlockedScreen.style.display = 'none';
+        }
+
+        // Show PIN form
+        function showPINForm() {
+            if (isProcessing) return;
+            
+            startBtn.style.display = 'none';
+            pinLoginBtn.style.display = 'none';
+            pinLoginForm.style.display = 'flex';
+            unlockedScreen.style.display = 'none';
+            notMatchedMessage.style.display = 'none';
+            cameraPermissionDenied.style.display = 'none';
+            countersDiv.style.display = 'none';
+            video.style.display = 'none';
+            canvas.style.display = 'none';
+            faceFeedback.classList.add('hidden');
+
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+            }
+
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            
+            // Focus input with small delay for mobile
+            setTimeout(() => {
+                pinInput.focus();
+            }, 300);
+        }
+
+        // Handle PIN submission
+        function handlePINSubmit() {
+            const pin = pinInput.value.trim();
+
+            if (pin.length < 6) {
+                pinError.textContent = "PIN must be 6 digits";
+                pinError.style.display = 'block';
+                return;
+            }
+
+            if (pin === correctPIN) {
+                pinError.style.display = 'none';
+                unlockedScreen.style.display = 'block';
+                pinLoginForm.style.display = 'none';
+                successCount++;
+                updateCounters();
+
+                setTimeout(() => {
+                    redirectToDashboard();
+                }, 1000);
+            } else {
+                pinError.textContent = "Incorrect PIN. Please try again.";
+                pinError.style.display = 'block';
+                pinInput.value = "";
+                updatePinDots();
+                failureCount++;
+                updateCounters();
+                
+                // Focus input with small delay for mobile
+                setTimeout(() => {
+                    pinInput.focus();
+                }, 300);
+            }
+        }
+
+        // Redirect to dashboard
+        function redirectToDashboard() {
+            window.location.href = 'https://webtools-kit.netlify.app';
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
