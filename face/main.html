@@ -2,43 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Mobile Biometric Unlock</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Secure Biometric Unlock</title>
     <style>
         :root {
-            --primary-color: #4285f4;
-            --primary-dark: #3367d6;
-            --error-color: #ea4335;
-            --success-color: #34a853;
+            --primary-color: #1e88e5;
+            --primary-dark: #1565c0;
+            --error-color: #ff4444;
+            --success-color: #00c851;
             --bg-dark: #121212;
-            --bg-light: #f5f5f5;
-            --text-dark: rgba(255, 255, 255, 0.92);
-            --text-light: #333;
-            --border-radius: 12px;
-            --transition-speed: 0.25s;
-            --header-height: 60px;
-            --footer-height: 80px;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+            --bg-light: #f0f0f0;
+            --text-dark: white;
+            --text-light: #222;
+            --border-radius: 10px;
+            --transition-speed: 0.3s;
         }
 
         body {
             background: var(--bg-dark);
             color: var(--text-dark);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
             text-align: center;
-            padding: 0;
+            padding: 20px;
             margin: 0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             transition: background-color var(--transition-speed), color var(--transition-speed);
-            touch-action: manipulation;
         }
 
         body.light {
@@ -46,94 +38,70 @@
             color: var(--text-light);
         }
 
-        header {
-            padding: 15px 20px;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
         h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
         }
 
         p {
-            margin: 10px 0 0;
+            margin-top: 0;
+            margin-bottom: 30px;
             color: #aaa;
-            max-width: 90%;
-            line-height: 1.4;
-            font-size: 0.9rem;
-        }
-
-        .main-content {
-            width: 100%;
-            padding: 0 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex-grow: 1;
-            justify-content: center;
+            max-width: 600px;
+            line-height: 1.5;
         }
 
         .video-container {
             position: relative;
             width: 100%;
-            max-width: 400px;
-            margin: 20px 0;
-            aspect-ratio: 9/16;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            background: #000;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            margin: 20px auto;
         }
 
         video {
+            border-radius: var(--border-radius);
+            border: 2px solid #555;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            height: auto;
+            max-height: 60vh;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            background: #000;
         }
 
         .button-group {
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 12px;
-            width: 100%;
-            max-width: 400px;
             margin: 20px 0;
         }
 
         button {
             margin: 0;
-            padding: 14px;
-            font-size: 1rem;
+            padding: 12px 24px;
+            font-size: 16px;
             cursor: pointer;
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: var(--border-radius);
+            border-radius: 6px;
             transition: all var(--transition-speed);
             font-weight: 500;
-            width: 100%;
+            min-width: 180px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            -webkit-appearance: none;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         button:active {
-            transform: scale(0.98);
+            transform: translateY(0);
         }
 
         button.secondary {
@@ -147,15 +115,19 @@
             border-color: var(--primary-dark);
         }
 
+        button.secondary:hover {
+            background-color: rgba(30, 136, 229, 0.1);
+        }
+
         #dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
             padding: 8px;
             min-width: auto;
             border-radius: 50%;
             width: 40px;
             height: 40px;
-            background: transparent;
-            border: none;
-            font-size: 1.2rem;
         }
 
         #unlocked-screen,
@@ -164,18 +136,16 @@
         #counters,
         #loading-screen {
             display: none;
-            margin-top: 20px;
-            font-size: 1rem;
+            margin-top: 30px;
+            font-size: 20px;
         }
 
         #unlocked-screen h2 {
             color: var(--success-color);
-            font-size: 1.3rem;
         }
 
         #not-matched-message h2 {
             color: var(--error-color);
-            font-size: 1.3rem;
         }
 
         #pin-login-form {
@@ -183,9 +153,9 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            margin-top: 0;
+            margin-top: 30px;
+            max-width: 300px;
             width: 100%;
-            max-width: 400px;
         }
 
         #pin-input-container {
@@ -195,20 +165,14 @@
 
         #pin-input {
             padding: 15px;
-            font-size: 1.1rem;
+            font-size: 18px;
             width: 100%;
             border-radius: var(--border-radius);
             border: 2px solid #555;
             outline: none;
             text-align: center;
             transition: border-color var(--transition-speed);
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-dark);
-        }
-
-        body.light #pin-input {
-            background: white;
-            color: var(--text-light);
+            box-sizing: border-box;
         }
 
         #pin-input:focus {
@@ -225,7 +189,6 @@
             cursor: pointer;
             color: #777;
             padding: 5px;
-            font-size: 1.1rem;
         }
 
         #pin-error {
@@ -233,14 +196,29 @@
             font-weight: bold;
             display: none;
             margin-top: -10px;
-            font-size: 0.9rem;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: var(--border-radius);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px var(--primary-color); }
+            50% { box-shadow: 0 0 30px var(--primary-dark); }
+            100% { box-shadow: 0 0 10px var(--primary-color); }
         }
 
         #counters {
             display: flex;
             gap: 20px;
-            margin-top: 20px;
-            font-size: 0.9rem;
+            margin-top: 25px;
+            font-size: 16px;
             color: #aaa;
         }
 
@@ -251,9 +229,9 @@
         }
 
         .counter-value {
-            font-size: 1.2rem;
+            font-size: 24px;
             font-weight: bold;
-            margin-top: 3px;
+            margin-top: 5px;
         }
 
         #success-count {
@@ -270,7 +248,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -279,13 +257,13 @@
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: var(--primary-color);
             animation: spin 1s ease-in-out infinite;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         @keyframes spin {
@@ -296,103 +274,115 @@
             display: none !important;
         }
 
-        footer {
-            width: 100%;
-            padding: 15px;
-            font-size: 0.8rem;
-            color: #777;
+        /* Accessibility focus styles */
+        button:focus, input:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
         }
 
-        /* Performance optimizations for mobile */
-        @media (max-width: 480px) {
-            .video-container {
-                max-width: 320px;
+        /* Responsive */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
             }
-            
+
+            p {
+                font-size: 0.9rem;
+            }
+
             button {
-                padding: 12px;
+                min-width: 160px;
+                padding: 10px 16px;
+            }
+
+            #pin-login-form {
+                max-width: 100%;
             }
         }
 
-        /* Disable text selection */
-        * {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+        @media (max-width: 400px) {
+            .button-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            button {
+                width: 100%;
+            }
         }
 
-        /* Disable callout on tap hold */
-        a, button {
-            -webkit-touch-callout: none;
+        .performance-warning {
+            background: #ff9800;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
         }
     </style>
 </head>
 
 <body>
-    <header>
-        <h1>Mobile Biometric Unlock</h1>
-        <button id="dark-mode-toggle" aria-label="Toggle dark mode">🌙</button>
-    </header>
+    <button id="dark-mode-toggle" aria-label="Toggle dark mode">🌙</button>
 
-    <div class="main-content">
-        <div id="loading-screen">
-            <div class="spinner"></div>
-            <p>Loading security modules...</p>
-            <div id="model-load-progress">0%</div>
-        </div>
-
-        <p>Use face recognition or PIN for secure access</p>
-
-        <div class="video-container">
-            <video id="video" autoplay muted playsinline></video>
-            <canvas id="canvas"></canvas>
-        </div>
-
-        <div class="button-group">
-            <button id="start-btn">
-                <span class="icon">📷</span>
-                <span class="text">Start Face Unlock</span>
-            </button>
-            <button id="pin-login-btn" class="secondary">
-                <span class="icon">🔑</span>
-                <span class="text">Use PIN Instead</span>
-            </button>
-        </div>
-
-        <div id="unlocked-screen">
-            <h2>Authentication Successful!</h2>
-            <p>Welcome back! Redirecting...</p>
-        </div>
-        <div id="not-matched-message">
-            <h2>Authentication Failed</h2>
-            <p>Face not recognized. Please try again</p>
-        </div>
-
-        <div id="pin-login-form">
-            <div id="pin-input-container">
-                <input type="password" id="pin-input" placeholder="Enter 6-digit PIN" maxlength="6" inputmode="numeric" pattern="\d*" />
-                <button id="pin-visibility-toggle" aria-label="Show PIN">👁️</button>
-            </div>
-            <button id="pin-submit-btn">Unlock</button>
-            <div id="pin-error">Incorrect PIN. Please try again.</div>
-        </div>
-
-        <div id="counters">
-            <div class="counter">
-                <span>Successful</span>
-                <span id="success-count" class="counter-value">0</span>
-            </div>
-            <div class="counter">
-                <span>Failed</span>
-                <span id="fail-count" class="counter-value">0</span>
-            </div>
-        </div>
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>Loading security modules...</p>
+        <div id="model-load-progress">0%</div>
     </div>
 
-    <footer>
-        Mobile Biometric Security System v1.0
-    </footer>
+    <div class="performance-warning" id="mobile-warning">
+        Mobile devices may experience slower performance during face detection.
+        For faster access, consider using PIN authentication.
+    </div>
+
+    <h1>Secure Biometric Unlock</h1>
+    <p>Authenticate using facial recognition or a secure PIN code for enhanced security</p>
+
+    <div class="video-container">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="button-group">
+        <button id="start-btn">
+            <span class="icon">📷</span>
+            <span class="text">Start Camera</span>
+        </button>
+        <button id="pin-login-btn" class="secondary">
+            <span class="icon">🔑</span>
+            <span class="text">Use PIN Instead</span>
+        </button>
+    </div>
+
+    <div id="unlocked-screen">
+        <h2>Authentication Successful!</h2>
+        <p>Welcome back! Redirecting to your secure dashboard...</p>
+    </div>
+    <div id="not-matched-message">
+        <h2>Authentication Failed</h2>
+        <p>Face not recognized. Please try again or use PIN</p>
+    </div>
+
+    <div id="pin-login-form">
+        <div id="pin-input-container">
+            <input type="password" id="pin-input" placeholder="Enter 6-digit PIN" maxlength="6" inputmode="numeric" pattern="\d*" />
+            <button id="pin-visibility-toggle" aria-label="Show PIN">👁️</button>
+        </div>
+        <button id="pin-submit-btn">Unlock</button>
+        <div id="pin-error">Incorrect PIN. Please try again.</div>
+    </div>
+
+    <div id="counters">
+        <div class="counter">
+            <span>Successful</span>
+            <span id="success-count" class="counter-value">0</span>
+        </div>
+        <div class="counter">
+            <span>Failed</span>
+            <span id="fail-count" class="counter-value">0</span>
+        </div>
+    </div>
 
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script>
@@ -413,6 +403,7 @@
         const successCountSpan = document.getElementById('success-count');
         const failCountSpan = document.getElementById('fail-count');
         const loadingScreen = document.getElementById('loading-screen');
+        const mobileWarning = document.getElementById('mobile-warning');
         const modelLoadProgress = document.getElementById('model-load-progress');
 
         // App State
@@ -420,44 +411,44 @@
         let detectionInterval;
         let successCount = 0;
         let failureCount = 0;
-        const correctPIN = "123456"; // In production, use secure storage
+        const correctPIN = "123456"; // In a real app, this would be securely stored
         let isPINVisible = false;
-        let isProcessing = false;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         // Initialize the app
         async function init() {
             showLoading(true);
             
-            // Set mobile-specific optimizations
-            document.body.classList.add('mobile-optimized');
-            
+            if (isMobile) {
+                mobileWarning.style.display = 'block';
+            }
+
             try {
                 await loadModels();
                 setupEventListeners();
                 resetUI();
                 showLoading(false);
-                
-                // Check for device motion (helps identify mobile)
-                if (window.DeviceMotionEvent) {
-                    window.addEventListener('devicemotion', handleDeviceMotion);
-                }
             } catch (error) {
                 console.error("Initialization error:", error);
                 showLoading(false);
-                alert("Failed to initialize. Please check your connection and refresh.");
+                alert("Failed to initialize security modules. Please refresh the page.");
             }
-        }
-
-        // Device motion handler (for mobile detection)
-        function handleDeviceMotion() {
-            // We're just using this to confirm we're on mobile
-            window.removeEventListener('devicemotion', handleDeviceMotion);
         }
 
         // Show/hide loading screen
         function showLoading(show) {
             loadingScreen.style.display = show ? 'flex' : 'none';
             document.body.style.overflow = show ? 'hidden' : '';
+        }
+
+        // Voice feedback function
+        function speak(text, interrupt = true) {
+            if (!window.speechSynthesis) return;
+            if (interrupt) window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
         }
 
         // Update counters UI
@@ -475,40 +466,40 @@
             darkModeToggle.textContent = isLight ? '🌙' : '☀️';
         }
 
-        // Load face detection models with mobile optimizations
+        // Load face detection models with progress tracking
         async function loadModels() {
-            // Use CPU backend for better mobile compatibility
-            await faceapi.tf.setBackend('cpu');
+            await faceapi.tf.setBackend(isMobile ? 'cpu' : 'webgl');
             await faceapi.tf.ready();
 
             const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models/';
             
-            // Load only essential models for mobile
             await Promise.all([
                 faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL, {
                     onProgress: (progress) => {
-                        modelLoadProgress.textContent = `Loading models... ${Math.round(progress * 100)}%`;
+                        modelLoadProgress.textContent = `Loading face detection model... ${Math.round(progress * 100)}%`;
                     }
                 }),
-                faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL, {
+                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL, {
                     onProgress: (progress) => {
-                        modelLoadProgress.textContent = `Loading models... ${Math.round(progress * 100)}%`;
+                        modelLoadProgress.textContent = `Loading landmark model... ${Math.round(progress * 100)}%`;
                     }
                 }),
                 faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL, {
                     onProgress: (progress) => {
-                        modelLoadProgress.textContent = `Loading models... ${Math.round(progress * 100)}%`;
+                        modelLoadProgress.textContent = `Loading recognition model... ${Math.round(progress * 100)}%`;
                     }
                 })
             ]);
         }
 
-        // Create face matcher with reference images (optimized for mobile)
+        // Create face matcher with reference images
         async function createFaceMatcher() {
             const labeledDescriptors = [];
             const faces = [
-                { label: 'User', image: 'anurag.png' },
-                // Replace with your image
+                { label: 'Anurag', image: 'anurag.png' },
+                { label: 'Anubhav', image: 'Anubhav.jpg' },
+                { label: 'Shomyansh', image: 'Shomyansh.jpg' },
+                { label: 'Shikhar', image: 'shikhar.jpg' },
             ];
 
             for (const face of faces) {
@@ -516,10 +507,10 @@
                     const img = await faceapi.fetchImage(face.image);
                     const detection = await faceapi
                         .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({
-                            inputSize: 128, // Smaller size for mobile
-                            scoreThreshold: 0.4 // Slightly lower threshold
+                            inputSize: isMobile ? 128 : 160,
+                            scoreThreshold: 0.5
                         }))
-                        .withFaceLandmarks(true) // Use tiny landmarks
+                        .withFaceLandmarks()
                         .withFaceDescriptor();
 
                     if (!detection) {
@@ -535,38 +526,34 @@
                 }
             }
 
-            if (labeledDescriptors.length === 0) {
+            if (labeledDescriptors.length == 0) {
                 throw new Error("No valid reference faces found");
             }
 
-            // Higher threshold for mobile to reduce false positives
-            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
+            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
             return faceMatcher;
         }
 
-        // Start camera stream with mobile-optimized settings
+        // Start camera stream with optimized settings for mobile
         async function startVideo() {
             try {
                 const constraints = {
                     video: {
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
+                        width: { ideal: isMobile ? 640 : 1280 },
+                        height: { ideal: isMobile ? 480 : 720 },
                         facingMode: 'user',
-                        frameRate: { ideal: 15 }
+                        frameRate: isMobile ? 15 : 30
                     }
                 };
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
                 return new Promise((resolve) => {
-                    video.onloadedmetadata = () => {
-                        // Small delay for mobile devices
-                        setTimeout(resolve, 300);
-                    };
+                    video.onloadedmetadata = () => resolve();
                 });
             } catch (err) {
                 console.error("Camera error:", err);
-                throw new Error("Camera permission denied or not available.");
+                throw new Error("Camera permission denied or no camera available.");
             }
         }
 
@@ -582,7 +569,7 @@
             startBtn.style.display = 'flex';
             pinLoginBtn.style.display = 'flex';
             startBtn.disabled = false;
-            startBtn.innerHTML = '<span class="icon">📷</span><span class="text">Start Face Unlock</span>';
+            startBtn.innerHTML = '<span class="icon">📷</span><span class="text">Start Camera</span>';
             successCount = 0;
             failureCount = 0;
             updateCounters();
@@ -598,11 +585,9 @@
                 clearInterval(detectionInterval);
                 detectionInterval = null;
             }
-            
-            isProcessing = false;
         }
 
-        // Setup all event listeners with mobile-friendly interactions
+        // Setup all event listeners
         function setupEventListeners() {
             // Dark mode toggle
             darkModeToggle.addEventListener('click', toggleDarkMode);
@@ -612,16 +597,13 @@
                 toggleDarkMode();
             }
 
-            // Face unlock start - use touch events for better mobile response
-            startBtn.addEventListener('touchstart', startFaceUnlock, { passive: true });
+            // Face unlock start
             startBtn.addEventListener('click', startFaceUnlock);
 
-            // PIN login button
-            pinLoginBtn.addEventListener('touchstart', showPINForm, { passive: true });
+            // PIN login button toggle form
             pinLoginBtn.addEventListener('click', showPINForm);
 
             // PIN submit handling
-            pinSubmitBtn.addEventListener('touchstart', handlePINSubmit, { passive: true });
             pinSubmitBtn.addEventListener('click', handlePINSubmit);
 
             // Allow PIN submit with Enter key
@@ -632,11 +614,7 @@
             });
 
             // PIN visibility toggle
-            pinVisibilityToggle.addEventListener('touchstart', togglePINVisibility, { passive: true });
             pinVisibilityToggle.addEventListener('click', togglePINVisibility);
-            
-            // Prevent zooming on double-tap
-            document.addEventListener('dblclick', (e) => e.preventDefault());
         }
 
         // Toggle PIN visibility
@@ -647,11 +625,8 @@
             pinVisibilityToggle.setAttribute('aria-label', isPINVisible ? 'Hide PIN' : 'Show PIN');
         }
 
-        // Start face unlock process with mobile optimizations
+        // Start face unlock process
         async function startFaceUnlock() {
-            if (isProcessing) return;
-            isProcessing = true;
-            
             try {
                 startBtn.disabled = true;
                 startBtn.innerHTML = '<span class="icon">⏳</span><span class="text">Loading...</span>';
@@ -672,38 +647,32 @@
                 console.error("Face unlock error:", error);
                 alert(error.message || "Failed to start face unlock");
                 resetUI();
-            } finally {
-                isProcessing = false;
             }
         }
 
-        // Setup face detection on video stream with mobile optimizations
+        // Setup face detection on video stream with optimized settings
         function setupFaceDetection() {
             const displaySize = { width: video.videoWidth, height: video.videoHeight };
             faceapi.matchDimensions(canvas, displaySize);
 
-            // Slower interval for mobile to reduce CPU usage
             detectionInterval = setInterval(async () => {
-                if (video.paused || video.ended || isProcessing) return;
-                isProcessing = true;
+                if (video.paused || video.ended) return;
 
                 try {
                     const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
-                        inputSize: 128, // Smaller size for mobile
-                        scoreThreshold: 0.4 // Lower threshold
+                        inputSize: isMobile ? 128 : 160,
+                        scoreThreshold: 0.5
                     }))
-                    .withFaceLandmarks(true) // Use tiny landmarks
+                    .withFaceLandmarks()
                     .withFaceDescriptors();
 
                     const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
                     const ctx = canvas.getContext('2d');
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Only draw detections if found to save CPU
+                    faceapi.draw.drawDetections(canvas, resizedDetections);
+
                     if (detections.length > 0) {
-                        faceapi.draw.drawDetections(canvas, resizedDetections);
-                        
                         const results = detections.map(d => faceMatcher.findBestMatch(d.descriptor));
                         let matched = false;
 
@@ -714,7 +683,6 @@
                                 break;
                             }
                         }
-                        
                         if (!matched) {
                             handleFailedAuth();
                         }
@@ -723,10 +691,8 @@
                     }
                 } catch (error) {
                     console.error("Detection error:", error);
-                } finally {
-                    isProcessing = false;
                 }
-            }, 1500); // Slower interval for mobile
+            }, isMobile ? 1500 : 800); // Slower interval for mobile
         }
 
         // Handle successful authentication
@@ -742,10 +708,11 @@
 
             unlockedScreen.style.display = 'block';
             notMatchedMessage.style.display = 'none';
+            speak(`Authentication successful. Welcome ${label}`);
 
             setTimeout(() => {
                 redirectToDashboard();
-            }, 1500);
+            }, 2000);
         }
 
         // Handle failed authentication
@@ -754,12 +721,14 @@
             updateCounters();
             notMatchedMessage.style.display = 'block';
             unlockedScreen.style.display = 'none';
+
+            if (failureCount === 1 || failureCount % 3 === 0) {
+                speak("Authentication failed. Please try again");
+            }
         }
 
         // Show PIN form
         function showPINForm() {
-            if (isProcessing) return;
-            
             startBtn.style.display = 'none';
             pinLoginBtn.style.display = 'none';
             pinLoginForm.style.display = 'flex';
@@ -777,11 +746,7 @@
             if (video.srcObject) {
                 video.srcObject.getTracks().forEach(track => track.stop());
             }
-            
-            // Focus input with small delay for mobile
-            setTimeout(() => {
-                pinInput.focus();
-            }, 300);
+            pinInput.focus();
         }
 
         // Handle PIN submission
@@ -791,6 +756,7 @@
             if (pin.length < 6) {
                 pinError.textContent = "PIN must be 6 digits";
                 pinError.style.display = 'block';
+                speak("PIN too short");
                 return;
             }
 
@@ -798,19 +764,17 @@
                 pinError.style.display = 'none';
                 unlockedScreen.style.display = 'block';
                 pinLoginForm.style.display = 'none';
+                speak("PIN accepted. Authentication successful.");
 
                 setTimeout(() => {
                     redirectToDashboard();
-                }, 1000);
+                }, 1500);
             } else {
                 pinError.textContent = "Incorrect PIN. Please try again.";
                 pinError.style.display = 'block';
+                speak("Incorrect PIN");
                 pinInput.value = "";
-                
-                // Focus input with small delay for mobile
-                setTimeout(() => {
-                    pinInput.focus();
-                }, 300);
+                pinInput.focus();
             }
         }
 
